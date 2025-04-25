@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %}접근 금지 - ShopMall{% endblock %}
+
+{% block content %}
+<div class="container text-center py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-lg border-0">
+                <div class="card-body p-5">
+                    <h1 class="display-1 text-warning mb-4">403</h1>
+                    <h2 class="mb-4">접근 권한이 없습니다</h2>
+                    <p class="lead mb-4">이 페이지에 접근할 권한이 없습니다. 로그인이 필요하거나 관리자 권한이 필요할 수 있습니다.</p>
+                    <div class="d-flex justify-content-center gap-3">
+                        <a href="{{ url_for('index') }}" class="btn btn-primary btn-lg">
+                            <i class="fas fa-home me-2"></i>홈으로
+                        </a>
+                        {% if not current_user.is_authenticated %}
+                        <a href="{{ url_for('login') }}" class="btn btn-outline-primary btn-lg">
+                            <i class="fas fa-sign-in-alt me-2"></i>로그인
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

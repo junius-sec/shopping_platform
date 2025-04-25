@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}채팅 목록 - 쇼핑몰{% endblock %}
+
+{% block content %}
+<div class="card shadow">
+    <div class="card-header bg-primary text-white py-3 d-flex justify-content-between align-items-center">
+        <h3 class="mb-0"><i class="fas fa-comments me-2"></i>내 채팅 목록</h3>
+        <a href="{{ url_for('community_chat') }}" class="btn btn-light">
+            <i class="fas fa-users me-1"></i>전체 채팅으로 이동
+        </a>
+    </div>
+    <div class="card-body p-4">
+        {% if chats %}
+        <div class="list-group">
+            {% for chat in chats %}
+            {% set other_user = chat.receiver if chat.sender_id == current_user.id else chat.sender %}
+            <a href="{{ url_for('view_chat', chat_id=chat.id) }}" class="list-group-item list-group-item-action d-flex align-items-start p-3">
+                <div class="me-3">
+                    <div class="avatar">
+                        {{ other_user.username[0] }}
+                    </div>
+                </div>
+                <div class="flex-grow-1">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-1">{{ chat.product.title }}</h5>
+                        <small class="text-muted">{{ chat.created_at.strftime('%Y-%m-%d %H:%M') }}</small>
+                    </div>
+                    <p class="mb-1">
+                        <i class="fas fa-user me-1"></i>채팅 상대: {{ other_user.username }}
+                        {% if other_user.is_admin %}
+                        <span class="badge bg-danger">관리자</span>
+                        {% endif %}
+                    </p>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <small class="text-muted">
+                            <i class="fas fa-box me-1"></i>상품: {{ chat.product.title }}
+                        </small>
+                        <span class="product-price">₩{{ "{:,.0f}".format(chat.product.price) }}</span>
+                    </div>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center p-5">
+            <i class="fas fa-comments fa-4x text-muted mb-3"></i>
+            <h4>아직 채팅 내역이 없습니다</h4>
+            <p class="text-muted">마음에 드는 상품을 찾아 판매자와 대화를 시작해보세요.</p>
+            <a href="{{ url_for('index') }}" class="btn btn-primary mt-3">
+                <i class="fas fa-shopping-cart me-2"></i>상품 둘러보기
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

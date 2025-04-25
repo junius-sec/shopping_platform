@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% block title %}채팅 | My Market{% endblock %}
+
+{% block content %}
+<div>
+  <h2>채팅방 {{ room_id }}</h2>
+  <div id="messages" style="border:1px solid #ddd; padding:1em; height:300px; overflow-y:scroll;">
+    {% for m in messages %}
+      <p>
+        <strong>{{ m.sender_id }}:</strong>
+        {{ m.content }}
+        <small style="color:#666;">[{{ m.timestamp }}]</small>
+      </p>
+    {% endfor %}
+  </div>
+
+  <div style="margin-top:1em;">
+    <input id="msg_input" type="text" placeholder="메시지 입력" style="width:80%;">
+    <button id="send_btn">전송</button>
+  </div>
+
+  <p><a href="{{ url_for('dashboard') }}">← 대시보드로 돌아가기</a></p>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  var socket = io();
+  var room = "{{ room_id }}";
+  var recipient = "{{ recipient }}";
+
+  // 방 참여
+  socket.emit('join', { room: room });
+
+  // 메시지 전송
+  document.getElementById('send_btn').onclick = function() {
+    var msg = document.getElementById('msg_input').value;
+    if (!msg) return;
+    socket.emit('send_message', {
+      room: room,
+      message: msg,
+      recipient: recipient
+    });
+    document.getElementById('msg_input').value = '';
+  };
+
+  // 메시지 수신
+  socket.on('receive_message', function(data) {
+    if (data.room !== room) return;
+    var container = document.getElementById('messages');
+    var p = document.createElement('p');
+    p.innerHTML = '<strong>' + data.sender + ':</strong> ' + data.message +
+                  ' <small style="color:#666;">[' + data.timestamp + ']</small>';
+    container.appendChild(p);
+    container.scrollTop = container.scrollHeight;
+  });
+</script>
+{% endblock %}

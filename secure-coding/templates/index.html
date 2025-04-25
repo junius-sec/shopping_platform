@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block title %}홈 - 쇼핑몰{% endblock %}
+
+{% block content %}
+<!-- 배너 섹션 -->
+<div class="card mb-4 bg-primary text-white">
+    <div class="card-body p-5">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="display-4 fw-bold mb-3">쇼핑몰에 오신 것을 환영합니다!</h1>
+                <p class="lead">다양한 상품을 구경하고 거래해보세요.</p>
+                <p class="mb-4">내가 필요없는 물건이 누군가에겐 소중한 보물이 될 수 있습니다.</p>
+                {% if current_user.is_authenticated %}
+                    {% if not current_user.is_suspended %}
+                    <a class="btn btn-light btn-lg" href="{{ url_for('add_product') }}">
+                        <i class="fas fa-plus-circle me-2"></i>상품 등록하기
+                    </a>
+                    {% endif %}
+                {% else %}
+                <a class="btn btn-light btn-lg" href="{{ url_for('login') }}">
+                    <i class="fas fa-sign-in-alt me-2"></i>로그인하기
+                </a>
+                {% endif %}
+            </div>
+            <div class="col-md-4 d-none d-md-block text-center">
+                <i class="fas fa-shopping-cart fa-10x opacity-50"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 상품 목록 -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-fire me-2"></i>최신 상품</h2>
+</div>
+
+{% if products %}
+<div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+    {% for product in products %}
+    <div class="col">
+        <div class="card h-100 product-card">
+            {% if product.image %}
+            <img src="{{ url_for('static', filename='uploads/' + product.image) }}" class="card-img-top product-image" alt="{{ product.title }}">
+            {% else %}
+            <div class="card-img-top bg-light d-flex justify-content-center align-items-center product-image">
+                <i class="fas fa-image fa-3x text-secondary"></i>
+            </div>
+            {% endif %}
+            <div class="card-body">
+                <h5 class="card-title">{{ product.title }}</h5>
+                <p class="card-text text-truncate">{{ product.description }}</p>
+                <p class="product-price">₩{{ "{:,.0f}".format(product.price) }}</p>
+                <div class="d-flex justify-content-between align-items-center">
+                    <a href="{{ url_for('view_product', product_id=product.id) }}" class="btn btn-outline-primary">
+                        <i class="fas fa-eye me-1"></i>상세 보기
+                    </a>
+                    <small class="text-muted">
+                        <i class="fas fa-eye me-1"></i>{{ product.view_count }}
+                    </small>
+                </div>
+            </div>
+            <div class="card-footer bg-white">
+                <small class="text-muted">
+                    <a href="{{ url_for('view_profile', user_id=product.user_id) }}" class="text-decoration-none">
+                        <i class="fas fa-user me-1"></i>{{ product.author.username }}
+                    </a>
+                    <span class="ms-2">{{ product.created_at.strftime('%Y-%m-%d') }}</span>
+                </small>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="alert alert-info">
+    <i class="fas fa-info-circle me-2"></i>현재 등록된 상품이 없습니다.
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+
+{% block title %}내 프로필 - 쇼핑몰{% endblock %}
+
+{% block content %}
+<div class="card shadow mb-4">
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-4 text-center mb-4 mb-md-0">
+                <div class="mb-3">
+                    <i class="fas fa-user-circle fa-7x text-primary"></i>
+                </div>
+                <h3>{{ current_user.username }}</h3>
+                <p class="text-muted">{{ current_user.email }}</p>
+                <p><small class="text-muted">가입일: {{ current_user.created_at.strftime('%Y-%m-%d') }}</small></p>
+                {% if current_user.is_admin %}
+                <div class="badge bg-danger mb-3">관리자</div>
+                {% endif %}
+                {% if current_user.is_suspended %}
+                <div class="badge bg-danger mb-3">계정 정지됨</div>
+                {% endif %}
+            </div>
+            <div class="col-md-8">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h4>내 활동 정보</h4>
+                    {% if current_user.is_admin %}
+                    <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-primary">
+                        <i class="fas fa-tachometer-alt me-1"></i>관리자 대시보드
+                    </a>
+                    {% endif %}
+                </div>
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <div class="row text-center">
+                            <div class="col-4">
+                                <h5>{{ products|length }}</h5>
+                                <p class="text-muted">등록상품</p>
+                            </div>
+                            <div class="col-4">
+                                <h5>{{ current_user.sent_chats|length + current_user.received_chats|length }}</h5>
+                                <p class="text-muted">채팅</p>
+                            </div>
+                            <div class="col-4">
+                                <h5>{{ current_user.last_login.strftime('%Y-%m-%d') }}</h5>
+                                <p class="text-muted">마지막 로그인</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3><i class="fas fa-box me-2"></i>내 상품 목록</h3>
+    {% if not current_user.is_suspended %}
+    <a href="{{ url_for('add_product') }}" class="btn btn-primary">
+        <i class="fas fa-plus-circle me-1"></i>상품 등록하기
+    </a>
+    {% endif %}
+</div>
+
+{% if products %}
+<div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+    {% for product in products %}
+    <div class="col">
+        <div class="card h-100 product-card">
+            {% if product.is_blocked %}
+            <div class="position-absolute top-0 end-0 m-2">
+                <span class="badge bg-danger">차단됨</span>
+            </div>
+            {% endif %}
+            {% if product.image %}
+            <img src="{{ url_for('static', filename='uploads/' + product.image) }}" class="card-img-top product-image" alt="{{ product.title }}">
+            {% else %}
+            <div class="card-img-top bg-light d-flex justify-content-center align-items-center product-image">
+                <i class="fas fa-image fa-3x text-secondary"></i>
+            </div>
+            {% endif %}
+            <div class="card-body">
+                <h5 class="card-title">{{ product.title }}</h5>
+                <p class="card-text text-truncate">{{ product.description }}</p>
+                <p class="product-price">₩{{ "{:,.0f}".format(product.price) }}</p>
+                <div class="d-flex justify-content-between align-items-center">
+                    <a href="{{ url_for('view_product', product_id=product.id) }}" class="btn btn-outline-primary">
+                        <i class="fas fa-eye me-1"></i>상세 보기
+                    </a>
+                    <small class="text-muted">
+                        <i class="fas fa-eye me-1"></i>{{ product.view_count }}
+                    </small>
+                </div>
+            </div>
+            <div class="card-footer bg-white">
+                <small class="text-muted">
+                    {{ product.created_at.strftime('%Y-%m-%d') }}
+                </small>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="alert alert-info">
+    <i class="fas fa-info-circle me-2"></i>등록한 상품이 없습니다.
+</div>
+{% endif %}
+{% endblock %}

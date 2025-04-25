@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+
+{% block title %}{{ product.title }} - 쇼핑몰{% endblock %}
+
+{% block content %}
+<div class="card shadow">
+    {% if product.is_blocked %}
+    <div class="card-header bg-danger text-white">
+        <div class="d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="fas fa-ban me-2"></i>이 상품은 현재 차단된 상태입니다</h5>
+            {% if current_user.is_admin %}
+            <form action="{{ url_for('toggle_product_status', product_id=product.id) }}" method="post" class="d-inline">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn-light btn-sm">
+                    <i class="fas fa-check me-1"></i>차단 해제
+                </button>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+    <div class="row g-0">
+        <div class="col-md-5">
+            {% if product.image %}
+            <img src="{{ url_for('static', filename='uploads/' + product.image) }}" class="img-fluid rounded-start h-100 w-100" style="object-fit: cover;" alt="{{ product.title }}">
+            {% else %}
+            <div class="bg-light text-secondary d-flex justify-content-center align-items-center h-100" style="min-height: 400px;">
+                <i class="fas fa-image fa-5x"></i>
+            </div>
+            {% endif %}
+        </div>
+        <div class="col-md-7">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <h2 class="card-title">{{ product.title }}</h2>
+                    <span class="badge bg-primary">조회수 {{ product.view_count }}</span>
+                </div>
+                
+                <div class="d-flex align-items-center mb-3">
+                    <span class="me-2">판매자:</span>
+                    <a href="{{ url_for('view_profile', user_id=product.user_id) }}" class="text-decoration-none d-flex align-items-center">
+                        <i class="fas fa-user-circle me-1 text-primary"></i>
+                        <span>{{ product.author.username }}</span>
+                        {% if product.author.is_admin %}
+                        <span class="badge bg-danger ms-1">관리자</span>
+                        {% endif %}
+                        {% if product.author.is_suspended %}
+                        <span class="badge bg-danger ms-1">정지됨</span>
+                        {% endif %}
+                    </a>
+                </div>
+                
+                <h3 class="text-primary mb-3">₩{{ "{:,.0f}".format(product.price) }}</h3>
+                
+                <hr>
+                
+                <div class="mb-3">
+                    <h5>상품 설명</h5>
+                    <p class="card-text">{{ product.description }}</p>
+                </div>
+                
+                <div class="mb-3">
+                    <small class="text-muted">등록일: {{ product.created_at.strftime('%Y-%m-%d %H:%M') }}</small>
+                </div>
+                
+                <div class="d-flex justify-content-between mt-4">
+                    <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-1"></i>상품 목록으로
+                    </a>
+                    
+                    <div>
+                        {% if current_user.is_authenticated %}
+                            {% if current_user.id == product.user_id %}
+                                {% if not current_user.is_suspended %}
+                                <a href="{{ url_for('edit_product', product_id=product.id) }}" class="btn btn-warning me-2">
+                                    <i class="fas fa-edit me-1"></i>수정
+                                </a>
+                                {% endif %}
+                                <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                                    <i class="fas fa-trash-alt me-1"></i>삭제
+                                </button>
+                            {% elif current_user.is_admin %}
+                                <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                                    <i class="fas fa-trash-alt me-1"></i>삭제 (관리자)
+                                </button>
+                            {% else %}
+                                {% if not current_user.is_suspended and not product.author.is_suspended and not product.is_blocked %}
+                                <a href="{{ url_for('chat', product_id=product.id, seller_id=product.user_id) }}" class="btn btn-success me-2">
+                                    <i class="fas fa-comments me-1"></i>채팅하기
+                                </a>
+                                {% endif %}
+                                <a href="{{ url_for('report', target_type='product', target_id=product.id) }}" class="btn btn-outline-danger">
+                                    <i class="fas fa-flag me-1"></i>신고
+                                </a>
+                            {% endif %}
+                        {% else %}
+                            <a href="{{ url_for('login') }}" class="btn btn-primary">
+                                <i class="fas fa-sign-in-alt me-1"></i>로그인하여 구매하기
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 삭제 확인 모달 -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="deleteModalLabel">상품 삭제 확인</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p><i class="fas fa-exclamation-triangle text-warning me-2"></i>정말로 이 상품을 삭제하시겠습니까?</p>
+                <p class="text-danger">이 작업은 되돌릴 수 없으며, 관련된 모든 채팅과 메시지도 함께 삭제됩니다.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+                <form action="{{ url_for('admin_delete_product', product_id=product.id) }}" method="post">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash-alt me-1"></i>삭제
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

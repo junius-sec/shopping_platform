@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+
+{% block title %}사용자 관리 - 쇼핑몰{% endblock %}
+
+{% block content %}
+<div class="card shadow mb-4">
+    <div class="card-header bg-primary text-white py-3 d-flex justify-content-between align-items-center">
+        <h3 class="mb-0"><i class="fas fa-users me-2"></i>사용자 관리</h3>
+        <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-light">
+            <i class="fas fa-arrow-left me-1"></i>대시보드로
+        </a>
+    </div>
+    <div class="card-body p-4">
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <form method="GET" class="d-flex">
+                    <select name="status" class="form-select me-2">
+                        <option value="all" {% if status == 'all' %}selected{% endif %}>모든 상태</option>
+                        <option value="active" {% if status == 'active' %}selected{% endif %}>활성 계정</option>
+                        <option value="suspended" {% if status == 'suspended' %}selected{% endif %}>정지 계정</option>
+                    </select>
+                    <select name="role" class="form-select me-2">
+                        <option value="all" {% if role == 'all' %}selected{% endif %}>모든 역할</option>
+                        <option value="user" {% if role == 'user' %}selected{% endif %}>일반 사용자</option>
+                        <option value="admin" {% if role == 'admin' %}selected{% endif %}>관리자</option>
+                    </select>
+                    <button type="submit" class="btn btn-primary">필터링</button>
+                </form>
+            </div>
+        </div>
+        
+        {% if users %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>ID</th>
+                        <th>사용자명</th>
+                        <th>이메일</th>
+                        <th>가입일</th>
+                        <th>마지막 로그인</th>
+                        <th>역할</th>
+                        <th>상태</th>
+                        <th>신고 횟수</th>
+                        <th>관리</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr>
+                        <td>{{ user.id }}</td>
+                        <td>
+                            <a href="{{ url_for('view_profile', user_id=user.id) }}" target="_blank">
+                                {{ user.username }}
+                            </a>
+                        </td>
+                        <td>{{ user.email }}</td>
+                        <td>{{ user.created_at.strftime('%Y-%m-%d') }}</td>
+                        <td>{{ user.last_login.strftime('%Y-%m-%d') }}</td>
+                        <td>
+                            {% if user.is_admin %}
+                            <span class="badge bg-danger">관리자</span>
+                            {% else %}
+                            <span class="badge bg-secondary">일반</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if user.status == 'active' %}
+                            <span class="badge bg-success">활성</span>
+                            {% else %}
+                            <span class="badge bg-danger">정지됨</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if user.report_count > 0 %}
+                            <span class="badge bg-warning">{{ user.report_count }}</span>
+                            {% else %}
+                            0
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if user.id != current_user.id %}
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                    <i class="fas fa-cog me-1"></i>관리
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li>
+                                        <form action="{{ url_for('toggle_user_status', user_id=user.id) }}" method="post">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                            <button type="submit" class="dropdown-item">
+                                                {% if user.status == 'active' %}
+                                                <i class="fas fa-ban me-1 text-danger"></i>계정 정지
+                                                {% else %}
+                                                <i class="fas fa-check me-1 text-success"></i>계정 활성화
+                                                {% endif %}
+                                            </button>
+                                        </form>
+                                    </li>
+                                    <li>
+                                        <form action="{{ url_for('toggle_admin', user_id=user.id) }}" method="post">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                            <button type="submit" class="dropdown-item">
+                                                {% if user.is_admin %}
+                                                <i class="fas fa-user me-1 text-warning"></i>관리자 해제
+                                                {% else %}
+                                                <i class="fas fa-user-shield me-1 text-primary"></i>관리자 지정
+                                                {% endif %}
+                                            </button>
+                                        </form>
+                                    </li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <button type="button" class="dropdown-item text-danger" data-bs-toggle="modal" data-bs-target="#deleteUserModal{{ user.id }}">
+                                            <i class="fas fa-trash-alt me-1"></i>계정 삭제
+                                        </button>
+                                    </li>
+                                </ul>
+                            </div>
+                            
+                            <!-- 사용자 삭제 확인 모달 -->
+                            <div class="modal fade" id="deleteUserModal{{ user.id }}" tabindex="-1" aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header bg-danger text-white">
+                                            <h5 class="modal-title">사용자 삭제 확인</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <p><strong>{{ user.username }}</strong> 사용자를 삭제하시겠습니까?</p>
+                                            <p class="text-danger"><i class="fas fa-exclamation-triangle me-1"></i>이 작업은 되돌릴 수 없으며, 사용자의 모든 상품, 채팅, 메시지가 삭제됩니다.</p>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+                                            <form action="{{ url_for('admin_delete_user', user_id=user.id) }}" method="post">
+                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                <button type="submit" class="btn btn-danger">
+                                                    <i class="fas fa-trash-alt me-1"></i>삭제
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% else %}
+                            <span class="text-muted">현재 사용자</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center p-5">
+            <i class="fas fa-users fa-4x text-muted mb-3"></i>
+            <h4>표시할 사용자가 없습니다</h4>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block title %}회원가입 - 쇼핑몰{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white py-3">
+                <h3 class="mb-0 text-center">회원가입</h3>
+            </div>
+            <div class="card-body p-4">
+                <form method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    
+                    <div class="mb-3">
+                        <label for="username" class="form-label">
+                            <i class="fas fa-user me-2"></i>사용자명
+                        </label>
+                        <input type="text" class="form-control form-control-lg" id="username" name="username" required>
+                        <div class="form-text">다른 사용자와 중복되지 않는 이름을 사용하세요.</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="email" class="form-label">
+                            <i class="fas fa-envelope me-2"></i>이메일
+                        </label>
+                        <input type="email" class="form-control form-control-lg" id="email" name="email" required>
+                        <div class="form-text">이메일은 계정 복구에 사용됩니다.</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="password" class="form-label">
+                            <i class="fas fa-lock me-2"></i>비밀번호
+                        </label>
+                        <input type="password" class="form-control form-control-lg" id="password" name="password" required>
+                        <div class="form-text">8자 이상의 비밀번호를 권장합니다.</div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="confirm_password" class="form-label">
+                            <i class="fas fa-lock me-2"></i>비밀번호 확인
+                        </label>
+                        <input type="password" class="form-control form-control-lg" id="confirm_password" name="confirm_password" required>
+                        <div class="form-text">비밀번호를 다시 입력해주세요.</div>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fas fa-user-plus me-2"></i>가입하기
+                        </button>
+                    </div>
+                </form>
+            </div>
+            <div class="card-footer text-center py-3">
+                <p class="mb-0">이미 계정이 있으신가요? <a href="{{ url_for('login') }}" class="fw-bold">로그인</a></p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

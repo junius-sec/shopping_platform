@@ -1,0 +1,89 @@
+/* 전체 스타일 */
+body {
+    font-family: 'Pretendard', sans-serif;
+    background-color: #f8f9fa;
+    color: #333;
+}
+
+/* 네비게이션 바 */
+.navbar {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* 카드 스타일 */
+.card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border: none;
+    overflow: hidden;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.card-img-top.product-image {
+    height: 200px;
+    object-fit: cover;
+}
+
+/* 버튼 스타일 */
+.btn {
+    border-radius: 4px;
+    font-weight: 500;
+}
+
+.btn-primary {
+    background-color: #4361ee;
+    border-color: #4361ee;
+}
+
+.btn-primary:hover {
+    background-color: #3a56d4;
+    border-color: #3a56d4;
+}
+
+/* 푸터 스타일 */
+.footer {
+    margin-top: 2rem;
+    border-top: 1px solid #e9ecef;
+}
+
+/* 홈페이지 점보트론 */
+.jumbotron {
+    background: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%);
+    color: white;
+    border-radius: 10px;
+    padding: 3rem !important;
+}
+
+/* 상품 이미지 자리 */
+.card-img-top.bg-secondary {
+    height: 200px;
+}
+
+/* 채팅 스타일 */
+.chat-container {
+    border: 1px solid #e9ecef;
+    border-radius: 0.25rem;
+    background-color: #f8f9fa;
+}
+
+/* 반응형 조정 */
+@media (max-width: 768px) {
+    .jumbotron {
+        padding: 2rem !important;
+    }
+    
+    .card-img-top.product-image {
+        height: 150px;
+    }
+}
+
+/* 관리자 페이지 */
+.admin-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 10;
+}

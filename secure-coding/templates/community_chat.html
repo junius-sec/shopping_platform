@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+
+{% block title %}전체 채팅 - 쇼핑몰{% endblock %}
+
+{% block content %}
+<div class="card shadow">
+    <div class="card-header bg-primary text-white py-3 d-flex justify-content-between align-items-center">
+        <h3 class="mb-0"><i class="fas fa-users me-2"></i>전체 채팅</h3>
+        <a href="{{ url_for('chats') }}" class="btn btn-light">
+            <i class="fas fa-comments me-1"></i>1:1 채팅으로 이동
+        </a>
+    </div>
+    <div class="card-body p-4">
+        <div class="alert alert-info mb-3">
+            <i class="fas fa-info-circle me-2"></i>이 채팅방은 모든 사용자가 함께 대화할 수 있는 공간입니다. 예의를 지켜주세요!
+        </div>
+        
+        <div class="chat-container" id="publicChatContainer">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="d-flex flex-column {% if message.user_id == current_user.id %}align-items-end{% else %}align-items-start{% endif %} mb-3">
+                        <div class="message-bubble {% if message.user_id == current_user.id %}message-mine{% else %}message-others{% endif %}">
+                            {{ message.content }}
+                        </div>
+                        <small class="text-muted mt-1">
+                            {{ message.user.username }}
+                            {% if message.user.is_admin %}
+                            <span class="badge bg-danger">관리자</span>
+                            {% endif %}
+                            - {{ message.timestamp.strftime('%Y-%m-%d %H:%M') }}
+                        </small>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="text-center text-muted my-5">
+                    <i class="fas fa-users fa-3x mb-3"></i>
+                    <p>아직 대화가 없습니다. 첫 메시지를 남겨보세요!</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    <div class="card-footer p-3">
+        <form id="publicMessageForm" class="d-flex">
+            <input type="text" class="form-control form-control-lg me-2" id="publicMessage" placeholder="메시지를 입력하세요..." autocomplete="off">
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-paper-plane"></i>
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const socket = io();
+        const chatContainer = document.getElementById('publicChatContainer');
+        const messageForm = document.getElementById('publicMessageForm');
+        const messageInput = document.getElementById('publicMessage');
+        const currentUserId = '{{ current_user.id }}';
+        const currentUsername = '{{ current_user.username }}';
+        const isAdmin = '{{ current_user.is_admin }}' === 'True';
+        
+        // 스크롤을 항상 아래로 유지
+        function scrollToBottom() {
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+        
+        // 페이지 로드 시 스크롤을 아래로
+        scrollToBottom();
+        
+        // 채팅방 참여
+        socket.emit('public_join');
+        
+        // 메시지 전송
+        messageForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const message = messageInput.value.trim();
+            
+            if (message) {
+                socket.emit('public_message', {
+                    message: message
+                });
+                
+                messageInput.value = '';
+            }
+        });
+        
+        // 상태 메시지 수신
+        socket.on('public_status', function(data) {
+            const statusContainer = document.createElement('div');
+            statusContainer.className = 'text-center my-2';
+            
+            const statusText = document.createElement('span');
+            statusText.className = 'badge bg-secondary';
+            statusText.textContent = data.msg;
+            
+            statusContainer.appendChild(statusText);
+            chatContainer.appendChild(statusContainer);
+            scrollToBottom();
+        });
+        
+        // 메시지 수신
+        socket.on('public_receive', function(data) {
+            const isCurrentUser = data.user_id == currentUserId;
+            
+            const messageContainer = document.createElement('div');
+            messageContainer.className = `d-flex flex-column ${isCurrentUser ? 'align-items-end' : 'align-items-start'} mb-3`;
+            
+            const messageBubble = document.createElement('div');
+            messageBubble.className = `message-bubble ${isCurrentUser ? 'message-mine' : 'message-others'}`;
+            messageBubble.textContent = data.message;
+            
+            const messageInfo = document.createElement('small');
+            messageInfo.className = 'text-muted mt-1';
+            
+            if (data.is_admin) {
+                const adminBadge = document.createElement('span');
+                adminBadge.className = 'badge bg-danger me-1';
+                adminBadge.textContent = '관리자';
+                messageInfo.appendChild(document.createTextNode(data.username + ' '));
+                messageInfo.appendChild(adminBadge);
+                messageInfo.appendChild(document.createTextNode(' - ' + data.timestamp));
+            } else {
+                messageInfo.textContent = `${data.username} - ${data.timestamp}`;
+            }
+            
+            messageContainer.appendChild(messageBubble);
+            messageContainer.appendChild(messageInfo);
+            
+            chatContainer.appendChild(messageContainer);
+            scrollToBottom();
+        });
+        
+        // 페이지를 떠날 때 채팅방 나가기
+        window.addEventListener('beforeunload', function() {
+            socket.emit('public_leave');
+        });
+    });
+</script>
+{% endblock %}

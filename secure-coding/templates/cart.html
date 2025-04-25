@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}장바구니{% endblock %}
+{% block content %}
+<h2>장바구니</h2>
+{% if cart_items %}
+  <ul>
+    {% for item in cart_items %}
+      <li>
+        <a href="{{ url_for('view_product', product_id=item.product['id']) }}">{{ item.product['title'] }}</a>
+        - 수량: {{ item.quantity }}
+      </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <p>장바구니가 비어있습니다.</p>
+{% endif %}
+{% endblock %}
+

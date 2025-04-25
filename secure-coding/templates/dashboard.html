@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block title %}대시보드{% endblock %}
+
+{% block content %}
+<h2>대시보드</h2>
+
+<h3>등록된 상품</h3>
+<ul>
+  {% for product in products %}
+    <li>
+      <a href="{{ url_for('view_product', product_id=product.id) }}">{{ product.title }}</a> - 가격: {{ product.price }}
+    </li>
+  {% endfor %}
+</ul>
+
+<p><a href="{{ url_for('new_product') }}">새 상품 등록</a></p>
+
+<!-- 🔥 기존 실시간 채팅 UI 제거 -->
+{% endblock %}
+

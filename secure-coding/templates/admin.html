@@ -1,0 +1,211 @@
+{% extends "base.html" %}
+
+{% block title %}관리자 대시보드 - 쇼핑몰{% endblock %}
+
+{% block content %}
+<div class="card shadow mb-4">
+    <div class="card-header bg-primary text-white py-3">
+        <h3 class="mb-0"><i class="fas fa-tachometer-alt me-2"></i>관리자 대시보드</h3>
+    </div>
+    <div class="card-body p-4">
+        <div class="row mb-4">
+            <div class="col-md-3 mb-4">
+                <div class="admin-card p-4 text-center">
+                    <div class="admin-card-icon mb-3">
+                        <i class="fas fa-flag"></i>
+                    </div>
+                    <div class="admin-card-value">{{ reports|length }}</div>
+                    <div class="admin-card-title">대기 중인 신고</div>
+                    <a href="{{ url_for('admin_reports') }}" class="btn btn-outline-primary btn-sm mt-3">
+                        <i class="fas fa-external-link-alt me-1"></i>신고 관리
+                    </a>
+                </div>
+            </div>
+            <div class="col-md-3 mb-4">
+                <div class="admin-card p-4 text-center">
+                    <div class="admin-card-icon mb-3">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="admin-card-value">{{ users|length }}</div>
+                    <div class="admin-card-title">총 사용자</div>
+                    <a href="{{ url_for('admin_users') }}" class="btn btn-outline-primary btn-sm mt-3">
+                        <i class="fas fa-external-link-alt me-1"></i>사용자 관리
+                    </a>
+                </div>
+            </div>
+            <div class="col-md-3 mb-4">
+                <div class="admin-card p-4 text-center">
+                    <div class="admin-card-icon mb-3">
+                        <i class="fas fa-ban"></i>
+                    </div>
+                    <div class="admin-card-value">{{ blocked_products }}</div>
+                    <div class="admin-card-title">차단된 상품</div>
+                    <a href="{{ url_for('admin_products') }}?status=blocked" class="btn btn-outline-primary btn-sm mt-3">
+                        <i class="fas fa-external-link-alt me-1"></i>차단 상품 보기
+                    </a>
+                </div>
+            </div>
+            <div class="col-md-3 mb-4">
+                <div class="admin-card p-4 text-center">
+                    <div class="admin-card-icon mb-3">
+                        <i class="fas fa-user-slash"></i>
+                    </div>
+                    <div class="admin-card-value">{{ suspended_users }}</div>
+                    <div class="admin-card-title">정지된 사용자</div>
+                    <a href="{{ url_for('admin_users') }}?status=suspended" class="btn btn-outline-primary btn-sm mt-3">
+                        <i class="fas fa-external-link-alt me-1"></i>정지 사용자 보기
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6 mb-4">
+                <div class="card h-100">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0"><i class="fas fa-flag me-2"></i>대기 중인 신고</h5>
+                    </div>
+                    <div class="card-body p-0">
+                        {% if reports %}
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>유형</th>
+                                        <th>신고자</th>
+                                        <th>날짜</th>
+                                        <th>조치</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for report in reports[:5] %}
+                                    <tr>
+                                        <td>{{ report.id }}</td>
+                                        <td>
+                                            {% if report.target_type == 'product' %}
+                                            <span class="badge bg-info">상품</span>
+                                            {% elif report.target_type == 'user' %}
+                                            <span class="badge bg-warning">사용자</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ report.reporter.username }}</td>
+                                        <td>{{ report.created_at.strftime('%Y-%m-%d') }}</td>
+                                        <td>
+                                            <a href="{{ url_for('admin_reports') }}" class="btn btn-outline-primary btn-sm">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% if reports|length > 5 %}
+                        <div class="text-center p-3">
+                            <a href="{{ url_for('admin_reports') }}" class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-external-link-alt me-1"></i>모든 신고 보기 ({{ reports|length }})
+                            </a>
+                        </div>
+                        {% endif %}
+                        {% else %}
+                        <div class="text-center p-5">
+                            <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                            <h5>대기 중인 신고가 없습니다</h5>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6 mb-4">
+                <div class="card h-100">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0"><i class="fas fa-history me-2"></i>최근 활동 로그</h5>
+                    </div>
+                    <div class="card-body p-0">
+                        {% if recent_logs %}
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>사용자</th>
+                                        <th>액션</th>
+                                        <th>IP</th>
+                                        <th>시간</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for log in recent_logs %}
+                                    <tr>
+                                        <td>
+                                            {% if log.user %}
+                                            {{ log.user.username }}
+                                            {% else %}
+                                            <span class="text-muted">비회원</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ log.action }}</td>
+                                        <td><code>{{ log.ip_address }}</code></td>
+                                        <td>{{ log.timestamp.strftime('%Y-%m-%d %H:%M') }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="text-center p-3">
+                            <a href="{{ url_for('admin_logs') }}" class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-external-link-alt me-1"></i>모든 로그 보기
+                            </a>
+                        </div>
+                        {% else %}
+                        <div class="text-center p-5">
+                            <i class="fas fa-clipboard-list fa-3x text-muted mb-3"></i>
+                            <h5>활동 로그가 없습니다</h5>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0"><i class="fas fa-tools me-2"></i>관리 메뉴</h5>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="row">
+                            <div class="col-md-3 mb-3">
+                                <a href="{{ url_for('admin_reports') }}" class="btn btn-outline-primary w-100 h-100 p-4 d-flex flex-column align-items-center justify-content-center">
+                                    <i class="fas fa-flag fa-2x mb-3"></i>
+                                    <span>신고 관리</span>
+                                </a>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <a href="{{ url_for('admin_users') }}" class="btn btn-outline-primary w-100 h-100 p-4 d-flex flex-column align-items-center justify-content-center">
+                                    <i class="fas fa-users fa-2x mb-3"></i>
+                                    <span>사용자 관리</span>
+                                </a>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <a href="{{ url_for('admin_products') }}" class="btn btn-outline-primary w-100 h-100 p-4 d-flex flex-column align-items-center justify-content-center">
+                                    <i class="fas fa-box fa-2x mb-3"></i>
+                                    <span>상품 관리</span>
+                                </a>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <a href="{{ url_for('admin_logs') }}" class="btn btn-outline-primary w-100 h-100 p-4 d-flex flex-column align-items-center justify-content-center">
+                                    <i class="fas fa-clipboard-list fa-2x mb-3"></i>
+                                    <span>활동 로그</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

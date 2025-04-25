@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+
+{% block title %}상품 관리 - 쇼핑몰{% endblock %}
+
+{% block content %}
+<div class="card shadow mb-4">
+    <div class="card-header bg-primary text-white py-3 d-flex justify-content-between align-items-center">
+        <h3 class="mb-0"><i class="fas fa-box me-2"></i>상품 관리</h3>
+        <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-light">
+            <i class="fas fa-arrow-left me-1"></i>대시보드로
+        </a>
+    </div>
+    <div class="card-body p-4">
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <form method="GET" class="d-flex">
+                    <select name="status" class="form-select me-2">
+                        <option value="all" {% if status == 'all' %}selected{% endif %}>모든 상태</option>
+                        <option value="active" {% if status == 'active' %}selected{% endif %}>활성 상품</option>
+                        <option value="blocked" {% if status == 'blocked' %}selected{% endif %}>차단된 상품</option>
+                    </select>
+                    <button type="submit" class="btn btn-primary">적용</button>
+                </form>
+            </div>
+        </div>
+        
+        {% if products %}
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>ID</th>
+                        <th>이미지</th>
+                        <th>제목</th>
+                        <th>가격</th>
+                        <th>판매자</th>
+                        <th>등록일</th>
+                        <th>상태</th>
+                        <th>신고</th>
+                        <th>조회수</th>
+                        <th>관리</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for product in products %}
+                    <tr>
+                        <td>{{ product.id }}</td>
+                        <td>
+                            {% if product.image %}
+                            <img src="{{ url_for('static', filename='uploads/' + product.image) }}" 
+                                 class="img-thumbnail" 
+                                 style="width: 70px; height: 70px; object-fit: cover;">
+                            {% else %}
+                            <div class="bg-light d-flex justify-content-center align-items-center" 
+                                 style="width: 70px; height: 70px;">
+                                <i class="fas fa-image fa-lg text-secondary"></i>
+                            </div>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{{ url_for('view_product', product_id=product.id) }}" 
+                               class="text-decoration-none" 
+                               target="_blank">
+                                {{ product.title|truncate(30) }}
+                            </a>
+                        </td>
+                        <td>₩{{ "{:,.0f}".format(product.price) }}</td>
+                        <td>
+                            <a href="{{ url_for('view_profile', user_id=product.user_id) }}" 
+                               class="text-decoration-none" 
+                               target="_blank">
+                                {{ product.author.username }}
+                            </a>
+                        </td>
+                        <td>{{ product.created_at.strftime('%Y-%m-%d') }}</td>
+                        <td>
+                            <span class="badge {% if product.status == 'active' %}bg-success{% else %}bg-danger{% endif %}">
+                                {{ '활성' if product.status == 'active' else '차단' }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge bg-warning text-dark">
+                                {{ product.report_count }}
+                            </span>
+                        </td>
+                        <td>{{ product.view_count }}</td>
+                        <td>
+                            <div class="d-flex gap-2">
+                                <!-- 상태 변경 버튼 -->
+                                <form action="{{ url_for('toggle_product_status', product_id=product.id) }}" method="POST">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" 
+                                            class="btn btn-sm {% if product.status == 'active' %}btn-outline-danger{% else %}btn-outline-success{% endif %}"
+                                            title="{{ '차단' if product.status == 'active' else '활성화' }}">
+                                        <i class="fas {{ 'fa-ban' if product.status == 'active' else 'fa-check' }}"></i>
+                                    </button>
+                                </form>
+
+                                <!-- 삭제 버튼 -->
+                                <button type="button" 
+                                        class="btn btn-sm btn-outline-danger" 
+                                        data-bs-toggle="modal" 
+                                        data-bs-target="#deleteModal{{ product.id }}"
+                                        title="삭제">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </div>
+
+                            <!-- 삭제 확인 모달 -->
+                            <div class="modal fade" 
+                                 id="deleteModal{{ product.id }}" 
+                                 data-bs-backdrop="static" 
+                                 data-bs-keyboard="false"
+                                 tabindex="-1" 
+                                 aria-labelledby="staticBackdropLabel" 
+                                 aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered">
+                                    <div class="modal-content">
+                                        <div class="modal-header bg-danger text-white">
+                                            <h5 class="modal-title"><i class="fas fa-exclamation-triangle me-2"></i>삭제 확인</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <p><strong>{{ product.title }}</strong> 상품을 정말 삭제하시겠습니까?</p>
+                                            <div class="alert alert-warning mt-3">
+                                                <h6 class="alert-heading">주의사항</h6>
+                                                <ul class="mb-0">
+                                                    <li>연관된 모든 채팅 기록 삭제</li>
+                                                    <li>업로드된 이미지 파일 영구 삭제</li>
+                                                    <li>복구 불가능</li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                                <i class="fas fa-times me-1"></i>취소
+                                            </button>
+                                            <form action="{{ url_for('admin_delete_product', product_id=product.id) }}" method="POST">
+                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                <button type="submit" class="btn btn-danger">
+                                                    <i class="fas fa-trash-alt me-1"></i>삭제
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center p-5 bg-light rounded-3">
+            <i class="fas fa-box-open fa-4x text-muted mb-4"></i>
+            <h4 class="text-muted">등록된 상품이 없습니다</h4>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // 모달이 표시될 때 포커스 트랩 설정
+        const modals = document.querySelectorAll('.modal');
+        modals.forEach(modal => {
+            modal.addEventListener('shown.bs.modal', function() {
+                // 모달 내부의 첫 번째 포커스 가능한 요소에 포커스
+                const focusableElements = modal.querySelectorAll(
+                    'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+                );
+                if (focusableElements.length > 0) {
+                    focusableElements[0].focus();
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

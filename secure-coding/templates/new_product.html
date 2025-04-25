@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <h2>새 상품 등록</h2>
+  <form method="post" enctype="multipart/form-data">
+    <div>
+      <label>제목:
+        <input type="text" name="title" required>
+      </label>
+    </div>
+    <div>
+      <label>설명:
+        <textarea name="description" rows="4" required></textarea>
+      </label>
+    </div>
+    <div>
+      <label>가격:
+        <input type="number" name="price" step="0.01" required> 원
+      </label>
+    </div>
+    <div>
+      <label>이미지 업로드:
+        <input type="file" name="image" accept="image/*">
+      </label>
+    </div>
+    <div style="margin-top:1em;">
+      <button type="submit">등록하기</button>
+      <a href="{{ url_for('dashboard') }}" style="margin-left:1em;">취소</a>
+    </div>
+  </form>
+{% endblock %}

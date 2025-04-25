@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}신고하기 - 쇼핑몰{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-header bg-danger text-white py-3">
+                <h3 class="mb-0">
+                    <i class="fas fa-flag me-2"></i>신고하기
+                </h3>
+            </div>
+            <div class="card-body p-4">
+                <div class="alert alert-warning mb-4">
+                    <div class="d-flex">
+                        <div class="me-3">
+                            <i class="fas fa-exclamation-triangle fa-2x"></i>
+                        </div>
+                        <div>
+                            <h5 class="alert-heading">신고 안내</h5>
+                            <p class="mb-0">
+                                {% if target_type == 'product' %}
+                                이 상품을 신고합니다. 허위 신고는 제재 대상이 될 수 있습니다.
+                                {% elif target_type == 'user' %}
+                                이 사용자를 신고합니다. 허위 신고는 제재 대상이 될 수 있습니다.
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <form method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    
+                    <div class="mb-4">
+                        <label for="reason" class="form-label">
+                            <i class="fas fa-exclamation-circle me-2"></i>신고 이유
+                        </label>
+                        <textarea class="form-control" id="reason" name="reason" rows="5" placeholder="구체적인 신고 이유를 작성해주세요." required></textarea>
+                        <div class="form-text">
+                            신고 내용은 관리자만 확인할 수 있으며, 신고 처리 결과는 별도로 안내하지 않습니다.
+                            {% if target_type == 'product' %}
+                            상품이 3회 이상 신고되면 자동으로 차단됩니다.
+                            {% elif target_type == 'user' %}
+                            사용자가 3회 이상 신고되면 자동으로 계정이 정지됩니다.
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between">
+                        <a href="javascript:history.back()" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>취소
+                        </a>
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-flag me-2"></i>신고하기
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

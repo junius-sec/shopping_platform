@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block title %}검색 결과: {{ query }} - 쇼핑몰{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <h2><i class="fas fa-search me-2"></i>"{{ query }}" 검색 결과</h2>
+    <p class="text-muted">총 {{ products|length }}개의 상품이 검색되었습니다.</p>
+</div>
+
+{% if products %}
+<div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+    {% for product in products %}
+    <div class="col">
+        <div class="card h-100 product-card">
+            {% if product.image %}
+            <img src="{{ url_for('static', filename='uploads/' + product.image) }}" class="card-img-top product-image" alt="{{ product.title }}">
+            {% else %}
+            <div class="card-img-top bg-light d-flex justify-content-center align-items-center product-image">
+                <i class="fas fa-image fa-3x text-secondary"></i>
+            </div>
+            {% endif %}
+            <div class="card-body">
+                <h5 class="card-title">{{ product.title }}</h5>
+                <p class="card-text text-truncate">{{ product.description }}</p>
+                <p class="product-price">₩{{ "{:,.0f}".format(product.price) }}</p>
+                <div class="d-flex justify-content-between align-items-center">
+                    <a href="{{ url_for('view_product', product_id=product.id) }}" class="btn btn-outline-primary">
+                        <i class="fas fa-eye me-1"></i>상세 보기
+                    </a>
+                    <small class="text-muted">
+                        <i class="fas fa-eye me-1"></i>{{ product.view_count }}
+                    </small>
+                </div>
+            </div>
+            <div class="card-footer bg-white">
+                <small class="text-muted">
+                    <a href="{{ url_for('view_profile', user_id=product.user_id) }}" class="text-decoration-none">
+                        <i class="fas fa-user me-1"></i>{{ product.author.username }}
+                    </a>
+                    <span class="ms-2">{{ product.created_at.strftime('%Y-%m-%d') }}</span>
+                </small>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="alert alert-info">
+    <div class="d-flex">
+        <div class="me-3">
+            <i class="fas fa-info-circle fa-2x"></i>
+        </div>
+        <div>
+            <h5 class="alert-heading">검색 결과가 없습니다</h5>
+            <p class="mb-0">다른 검색어로 다시 시도해보세요.</p>
+        </div>
+    </div>
+</div>
+
+<div class="text-center my-5">
+    <i class="fas fa-search fa-4x text-muted mb-3"></i>
+    <h4>검색 팁</h4>
+    <p>더 일반적인 키워드를 사용하거나 오타를 확인해보세요.</p>
+    <a href="{{ url_for('index') }}" class="btn btn-primary mt-3">
+        <i class="fas fa-home me-2"></i>홈으로 돌아가기
+    </a>
+</div>
+{% endif %}
+{% endblock %}
